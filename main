@@ -1,0 +1,53 @@
+import csv
+import subprocess
+
+def run_nmap_scan(target):
+    try:
+        # This function runs the nmap scan using the target defined below.
+        command = f"nmap -oX scan_results.xml {target}"
+        subprocess.run(command, shell=True, check=True)
+
+        # This section takes the raw xml output of the scan and converts it to a csv file.
+        xml_to_csv("scan_results.xml", "scan_results.csv")
+        
+        print("Nmap scan completed successfully.")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error running Nmap scan: {e}")
+
+def xml_to_csv(xml_file, csv_file):
+    try:
+        # Parse XML file
+        import xml.etree.ElementTree as ET
+        tree = ET.parse(xml_file)
+        root = tree.getroot()
+
+        # Open CSV file for writing
+        with open(csv_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            
+            # Write header row
+            writer.writerow(["IP", "Port", "Protocol", "State", "Service"])
+
+            # Extract relevant information from XML and write to CSV
+            for host in root.iter("host"):
+                ip = host.find("address").attrib["addr"]
+
+                for port in host.iter("port"):
+                    port_number = port.attrib["portid"]
+                    protocol = port.attrib["protocol"]
+                    state = port.find("state").attrib["state"]
+                    service = port.find("service").attrib["name"]
+
+                    writer.writerow([ip, port_number, protocol, state, service])
+        
+        print(f"Results saved to {csv_file}.")
+
+    except ET.ParseError as e:
+        print(f"Error parsing XML file: {e}")
+    except IOError as e:
+        print(f"Error writing to CSV file: {e}")
+
+# User must define the target before attempting to run the script.
+target = "192.168.11.133" 
+run_nmap_scan(target)

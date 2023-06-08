@@ -49,5 +49,5 @@ def xml_to_csv(xml_file, csv_file):
         print(f"Error writing to CSV file: {e}")
 
 # User must define the target before attempting to run the script.
-target = "192.168.11.133" 
+target = "" 
 run_nmap_scan(target)
